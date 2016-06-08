@@ -1,0 +1,7 @@
+---
+applications:
+- name: agencyDemo
+  memory: 64M
+  host: agencyDemo
+  buildpack: staticfile_buildpack
+
