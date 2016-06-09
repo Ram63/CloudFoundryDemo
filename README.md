@@ -1,6 +1,6 @@
 # Cloud Foundry Demo
 
-Thisis a Cloud Foundry Demo which uses a static html website which can be pushed to a CLoud Foundry instance. The static website is based on the [Agency](http://startbootstrap.com/template-overviews/agency/) theme. It  is a one page agency portfolio theme for [Bootstrap](http://getbootstrap.com/) created by [Start Bootstrap](http://startbootstrap.com/). This theme features several content sections, a responsive portfolio grid with hover effects, full page portfolio item modals, a responsive timeline, and a working PHP contact form.
+This is a Cloud Foundry Demo which uses a static html website which can be pushed to a CLoud Foundry instance. The static website is based on the [Agency](http://startbootstrap.com/template-overviews/agency/) theme. It  is a one page agency portfolio theme for [Bootstrap](http://getbootstrap.com/) created by [Start Bootstrap](http://startbootstrap.com/). This theme features several content sections, a responsive portfolio grid with hover effects, full page portfolio item modals, a responsive timeline, and a working PHP contact form.
 
 ## Getting Started
 
