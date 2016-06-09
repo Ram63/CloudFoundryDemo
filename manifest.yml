@@ -4,4 +4,3 @@ applications:
   memory: 64M
   host: agencyDemo
   buildpack: staticfile_buildpack
-
