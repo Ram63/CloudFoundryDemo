@@ -11,7 +11,7 @@ Thisis a Cloud Foundry Demo which uses a static html website which can be pushed
 
 ## Creator
 
-In case you want to reach out to me. The easiest way is through Twitter:
+In case you want to reach out to me. The easiest way to do so is through Twitter:
 
 * https://twitter.com/StephanMichard
 
