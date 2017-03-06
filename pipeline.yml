@@ -1,14 +1,14 @@
 resources:
-- name: agency-repository
+- name: app-sources
   type: git
   source:
     uri: https://github.com/smichard/CloudFoundryDemo
     branch: master
     
-- name: staging-website
+- name: staging-cf
   type: cf
   source:
-    api: https://api.run.pivotal.io
+    api: {{pws_api}}
     username: {{pws_user}}
     password: {{pws_password}}
     organization: {{pws_org}}
@@ -19,8 +19,8 @@ jobs:
 - name: deploy-website
   serial: true
   plan:
-  - get: agency-repository
+  - get: app-sources
     trigger: true
-  - put: staging-website
+  - put: staging-cf
     params:
-        manifest: manifest.yml
+        manifest: app_sources/manifest.yml
