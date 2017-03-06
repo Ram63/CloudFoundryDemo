@@ -5,7 +5,7 @@ resources:
     uri: https://github.com/smichard/CloudFoundryDemo
     branch: master
     
-- name: staging-cf
+- name: staging-CloudFoundry
   type: cf
   source:
     api: {{pws_api}}
@@ -21,6 +21,6 @@ jobs:
   plan:
   - get: app-sources
     trigger: true
-  - put: staging-cf
+  - put: staging-CloudFoundry
     params:
         manifest: app-sources/manifest.yml
