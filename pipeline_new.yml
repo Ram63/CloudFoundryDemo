@@ -1,14 +1,14 @@
 resource_types:
-#- name: slack_notification
-#  type: docker-image
-#  source:
-#    repository: cfcommunity/slack-notification-resource
-#    tag: latest
-
-- name: twitter_notification
+- name: slack_notification
   type: docker-image
   source:
-    repository: ecsteam/twitter-concourse-resource
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+#- name: twitter_notification
+#  type: docker-image
+#  source:
+#    repository: ecsteam/twitter-concourse-resource
 
 
 resources:
@@ -32,30 +32,30 @@ resources:
   type: tracker
   source:
     token: {{traker_api_token}}
-    project_id: tbd
+    project_id: "2098312"
     tracker_url: https://www.pivotaltracker.com
 
-- name: s3_target
-  type: s3
-  source:
-    endpoint: {{s3_endpoint}}
-    bucket: releases
-    regexp: directory_on_s3/release-(.*).tgz tbd
-    access_key_id: {{s3_key}}
-    secret_access_key: {{s3_secret}}
-
-#- name: slack_msg
-#  type: slack_notification
+#- name: s3_target
+#  type: s3
 #  source:
-#    url: {{slack_hook}}
+#    endpoint: {{s3_endpoint}}
+#    bucket: releases
+#    regexp: directory_on_s3/release-(.*).tgz tbd
+#    access_key_id: {{s3_key}}
+#    secret_access_key: {{s3_secret}}
 
-- name: twitter_msg
-  type: twitter_notification
+- name: slack_msg
+  type: slack_notification
   source:
-    consumer_key: {{twitter_consumer_key}}
-    consumer_secret: {{twitter_consumer_secret}}
-    access_token: {{twitter_access_token}}
-    access_token_secret: {{twitter_access_token_secret}}
+    url: {{slack_hook}}
+
+#- name: twitter_msg
+#  type: twitter_notification
+#  source:
+#    consumer_key: {{twitter_consumer_key}}
+#    consumer_secret: {{twitter_consumer_secret}}
+#    access_token: {{twitter_access_token}}
+#    access_token_secret: {{twitter_access_token_secret}}
 
 jobs:
 - name: deploy-website
@@ -67,14 +67,19 @@ jobs:
   - put: staging_CloudFoundry
     params:
         manifest: app_sources/manifest.yml
+  - put: slack_msg
+    params:
+      channel: '#general'
+      text: The new version was successfully pushed to Cloud Foundry.
   - put: tracker_output
     params:
-      repos: app_sources
-  - put: s3_target
-    params:
-      file: tbd
-      acl: public-read
-  - put: twitter_msg
-    params:
-      status: >
-        Just deployed a new version of my app to Cloud Foundry with @concourseci (build ${BUILD_ID})
+      repos:
+      - app_sources
+#  - put: s3_target
+#    params:
+#      file: tbd
+#      acl: public-read
+#  - put: twitter_msg
+#    params:
+#      status: >
+#        Just deployed a new version of my app to Cloud Foundry with @concourseci (Build ${BUILD_ID}) #CloudFoundry #CloudNative
