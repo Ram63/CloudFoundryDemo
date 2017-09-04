@@ -6,4 +6,3 @@ applications:
 #  host: agencyDemo
   routes:
     - route: agencydemo.cfapps.io
-    - route: www.agencydemo.cfapps.io
