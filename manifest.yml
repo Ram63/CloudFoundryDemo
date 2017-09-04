@@ -2,7 +2,7 @@
 applications:
 - name: agencyDemo
   memory: 64M
-  path: index.html
+  path: 
   buildpack: staticfile_buildpack
   #host: agencyDemo
   routes:
