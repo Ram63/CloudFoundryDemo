@@ -1,0 +1,41 @@
+resource_types:
+  - name: bender_resource
+    type: docker-image
+    source:
+      repository: smichard/bender
+      tag: latest
+
+resources:
+- name: app_sources
+  type: git
+  source:
+    uri: https://github.com/smichard/CloudFoundryDemo
+    branch: master
+
+- name: bender
+  type: bender_resource
+  source:
+    slack_token: 
+    channel: "general"
+
+- name: staging_CloudFoundry
+  type: cf
+  source:
+    api: {{pws_api}}
+    username: {{pws_user}}
+    password: {{pws_password}}
+    organization: {{pws_org}}
+    space: {{pws_space}}
+    skip_cert_check: false
+
+jobs:
+  - name   : slack-trigger
+    plan   :
+      - get: bender
+        version: every
+        trigger: true
+      - get: app_sources
+        trigger: true
+      - put: staging_CloudFoundry
+        params:
+            manifest: app_sources/manifest.yml
