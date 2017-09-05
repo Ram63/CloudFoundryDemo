@@ -3,5 +3,4 @@ applications:
 - name: agencyDemo
   memory: 64M
   buildpack: staticfile_buildpack
-  routes:
-    - route: agencyDemo.cfapps.io
+  host: agencyDemo
