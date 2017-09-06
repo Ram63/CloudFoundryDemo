@@ -3,7 +3,7 @@ resources:
   type: git
   source:
     uri: https://github.com/smichard/CloudFoundryDemo
-    branch: master
+    branch: master #anpassen
   check_every: 20s
 
 #- name: app_sources_staging
