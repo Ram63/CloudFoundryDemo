@@ -1,0 +1,111 @@
+resources:
+- name: app_sources_dev
+  type: git
+  source:
+    uri: https://github.com/smichard/CloudFoundryDemo
+    branch: dev
+  check_every: 20s
+
+#- name: app_sources_staging
+#  type: git
+#  source:
+#    uri: https://github.com/smichard/CloudFoundryDemo
+#    branch: staging
+#  check_every: 20s
+
+#- name: app_sources_production
+#  type: git
+#  source:
+#    uri: https://github.com/smichard/CloudFoundryDemo
+#    branch: master
+#  check_every: 20s
+
+- name: cloud_foundry_dev
+  type: cf
+  source:
+    api: {{cf_api}}
+    username: {{cf_user}}
+    password: {{cf_password}}
+    organization: {{cf_org}}
+    space: {{cf_space_dev}}
+    skip_cert_check: false
+
+#- name: cloud_foundry_staging
+#  type: cf
+#  source:
+#    api: {{cf_api}}
+#    username: {{cf_user}}
+#    password: {{cf_password}}
+#    organization: {{cf_org}}
+#    space: {{cf_space_staging}}
+#    skip_cert_check: false
+
+#- name: cloud_foundry_production
+#  type: cf
+#  source:
+#    api: {{cf_api}}
+#    username: {{cf_user}}
+#    password: {{cf_password}}
+#    organization: {{cf_org}}
+#    space: {{cf_space_production}}
+#    skip_cert_check: false
+
+- name: tracker_output
+  type: tracker
+  source:
+    token: {{traker_api_token}}
+    project_id: {{tracker-project-id}}
+    tracker_url: https://www.pivotaltracker.com
+
+#- name: s3_target
+#  type: s3
+#  source:
+#    endpoint: {{s3_endpoint}}
+#    bucket: releases
+#    regexp: directory_on_s3/release-(.*).tgz tbd
+#    access_key_id: {{s3_key}}
+#    secret_access_key: {{s3_secret}}
+
+- name: slack_msg
+  type: slack_notification
+  source:
+    url: {{slack_hook}}
+
+#- name: twitter_msg
+#  type: twitter_notification
+#  source:
+#    consumer_key: {{twitter_consumer_key}}
+#    consumer_secret: {{twitter_consumer_secret}}
+#    access_token: {{twitter_access_token}}
+#    access_token_secret: {{twitter_access_token_secret}}
+
+
+jobs:
+  - name: test_dev
+    public: true
+    serial: true
+    plan:
+      - get: app_sources_dev
+        trigger: true
+      - task: unit
+        file: repo/ci/tasks/unit.yml
+      - put: tracker_output
+        params:
+          repos:
+          - app_sources_dev
+
+  - name: deploy-dev
+    public: true
+    serial: true
+    plan:
+    - get: app_sources_dev
+      passed: [ test_dev ]
+      trigger: true
+    - put: cloud_foundry_dev
+      params:
+        path: app_sources/
+        manifest: app_sources/manifest_dev.yml  
+    - put: slack_msg
+      params:
+        channel: '#general'
+        text: The new version was successfully pushed to Cloud Foundry.
