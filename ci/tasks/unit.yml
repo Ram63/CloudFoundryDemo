@@ -3,10 +3,7 @@ platform: linux
 
 image_resource:
   type: docker-image
-  source: 
-    repository: busybox
+  source: {repository: busybox}
 
 run:
-  path: sh
-  args: 
-    - app_sources_dev/ci/tasks/unit.sh
+  path: ./app_sources_dev/ci/tasks/unit.sh
