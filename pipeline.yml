@@ -24,4 +24,5 @@ jobs:
     trigger: true
   - put: staging_CloudFoundry
     params:
+        path: app_sources/
         manifest: app_sources/manifest.yml
