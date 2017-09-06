@@ -7,5 +7,6 @@ image_resource:
     repository: busybox
 
 run:
-  path: echo
-  args: [hello world]
+  path: sh
+  args: 
+    - app_sources_dev/ci/tasks/unit.sh
