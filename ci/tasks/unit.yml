@@ -6,4 +6,4 @@ image_resource:
   source: {repository: busybox}
 
 run:
-  path: ./CloudFoundryDemo/ci/tasks/unit.sh
+  path: unit.sh
