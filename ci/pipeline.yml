@@ -81,7 +81,7 @@ resources:
 
 
 jobs:
-  - name: test_dev
+  - name: test-dev
     public: true
     serial: true
     plan:
@@ -99,13 +99,23 @@ jobs:
     serial: true
     plan:
     - get: app_sources_dev
-      passed: [ test_dev ]
+      passed: [ test-dev ]
       trigger: true
     - put: cloud_foundry_dev
       params:
         path: app_sources/
-        manifest: app_sources/manifest_dev.yml  
-    - put: slack_msg
-      params:
-        channel: '#general'
-        text: The new version was successfully pushed to Cloud Foundry.
+        manifest: app_sources/manifest_dev.yml
+      on_success:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check it out at:
+            http://127.0.0.1:8080/builds/$BUILD_ID
+      on_failure:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+            http://127.0.0.1:8080/builds/$BUILD_ID
