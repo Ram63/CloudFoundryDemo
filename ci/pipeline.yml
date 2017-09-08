@@ -126,7 +126,7 @@ jobs:
           channel: '#general'
           text: |
             Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
-            https://cloudfoundry-demo-dev.cf.isus.emc.com
+            https://cloudfoundry-demo-sym-dev.cfapps.io/
       on_failure:
         put: slack_msg
         params:
@@ -161,7 +161,7 @@ jobs:
           channel: '#general'
           text: |
             Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
-            https://cloudfoundry-demo-staging.cf.isus.emc.com
+            https://cloudfoundry-demo-sym-staging.cfapps.io/
       on_failure:
         put: slack_msg
         params:
@@ -196,11 +196,11 @@ jobs:
           channel: '#general'
           text: |
             Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
-            https://cloudfoundry-demo.cf.isus.emc.com
+            http://cloudfoundry-demo-sym.cfapps.io/
         put: twitter_msg
         params:
           status: >
-            Just deployed a new version of my app to Cloud Foundry with @concourseci (build ${BUILD_ID})
+            Just deployed a new version of my app to Cloud Foundry with @concourseci (build ${BUILD_ID}) - check it out http://cloudfoundry-demo-sym.cfapps.io/
       on_failure:
         put: slack_msg
         params:
