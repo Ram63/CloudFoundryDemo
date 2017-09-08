@@ -17,7 +17,7 @@ resources:
     uri: git@github.com:smichard/CloudFoundryDemo.git
     branch: dev
     private_key: {{github_private_key}}
-  check_every: 20s
+  check_every: 10s
 
 - name: app_sources_staging
   type: git
@@ -33,7 +33,7 @@ resources:
     uri: git@github.com:smichard/CloudFoundryDemo.git
     branch: master
     private_key: {{github_private_key}}
-  check_every: 20s
+  check_every: 30s
 
 - name: cloud_foundry_dev
   type: cf
