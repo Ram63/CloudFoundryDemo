@@ -5,27 +5,35 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
+- name: twitter_notification
+  type: docker-image
+  source:
+    repository: ecsteam/twitter-concourse-resource
+
 resources:
 - name: app_sources_dev
   type: git
   source:
-    uri: https://github.com/smichard/CloudFoundryDemo
-    branch: dev #anpassen
+    uri: git@github.com:smichard/CloudFoundryDemo.git
+    branch: dev
+    private_key: {{github_private_key}}
   check_every: 20s
 
-#- name: app_sources_staging
-#  type: git
-#  source:
-#    uri: https://github.com/smichard/CloudFoundryDemo
-#    branch: staging
-#  check_every: 20s
+- name: app_sources_staging
+  type: git
+  source:
+    uri: git@github.com:smichard/CloudFoundryDemo.git
+    branch: staging
+    private_key: {{github_private_key}}
+  check_every: 20s
 
-#- name: app_sources_production
-#  type: git
-#  source:
-#    uri: https://github.com/smichard/CloudFoundryDemo
-#    branch: master
-#  check_every: 20s
+- name: app_sources_production
+  type: git
+  source:
+    uri: git@github.com:smichard/CloudFoundryDemo.git
+    branch: master
+    private_key: {{github_private_key}}
+  check_every: 20s
 
 - name: cloud_foundry_dev
   type: cf
@@ -37,25 +45,25 @@ resources:
     space: {{cf_space_dev}}
     skip_cert_check: false
 
-#- name: cloud_foundry_staging
-#  type: cf
-#  source:
-#    api: {{cf_api}}
-#    username: {{cf_user}}
-#    password: {{cf_password}}
-#    organization: {{cf_org}}
-#    space: {{cf_space_staging}}
-#    skip_cert_check: false
+- name: cloud_foundry_staging
+  type: cf
+  source:
+    api: {{cf_api}}
+    username: {{cf_user}}
+    password: {{cf_password}}
+    organization: {{cf_org}}
+    space: {{cf_space_staging}}
+    skip_cert_check: false
 
-#- name: cloud_foundry_production
-#  type: cf
-#  source:
-#    api: {{cf_api}}
-#    username: {{cf_user}}
-#    password: {{cf_password}}
-#    organization: {{cf_org}}
-#    space: {{cf_space_production}}
-#    skip_cert_check: false
+- name: cloud_foundry_production
+  type: cf
+  source:
+    api: {{cf_api}}
+    username: {{cf_user}}
+    password: {{cf_password}}
+    organization: {{cf_org}}
+    space: {{cf_space_production}}
+    skip_cert_check: false
 
 - name: tracker_output
   type: tracker
@@ -78,13 +86,13 @@ resources:
   source:
     url: {{slack_hook}}
 
-#- name: twitter_msg
-#  type: twitter_notification
-#  source:
-#    consumer_key: {{twitter_consumer_key}}
-#    consumer_secret: {{twitter_consumer_secret}}
-#    access_token: {{twitter_access_token}}
-#    access_token_secret: {{twitter_access_token_secret}}
+- name: twitter_msg
+  type: twitter_notification
+  source:
+    consumer_key: {{twitter_consumer_key}}
+    consumer_secret: {{twitter_consumer_secret}}
+    access_token: {{twitter_access_token}}
+    access_token_secret: {{twitter_access_token_secret}}
 
 
 jobs:
@@ -110,19 +118,93 @@ jobs:
       trigger: true
     - put: cloud_foundry_dev
       params:
-        path: app_sources/
-        manifest: app_sources/manifest_dev.yml
+        path: app_sources_dev/
+        manifest: app_sources_dev/manifest_dev.yml
       on_success:
         put: slack_msg
         params:
           channel: '#general'
           text: |
-            The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check it out at:
-            http://127.0.0.1:8080/builds/$BUILD_ID
+            Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
+            https://cloudfoundry-demo-dev.cf.isus.emc.com
       on_failure:
         put: slack_msg
         params:
           channel: '#general'
           text: |
-            The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+            Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+            http://127.0.0.1:8080/builds/$BUILD_ID
+
+  - name: test-staging
+    public: true
+    serial: true
+    plan:
+      - get: app_sources_staging
+        trigger: true
+      - task: unit
+        file: app_sources_staging/ci/tasks/unit.yml
+
+  - name: deploy-staging
+    public: true
+    serial: true
+    plan:
+    - get: app_sources_staging
+      passed: [ test-staging ]
+      trigger: true
+    - put: cloud_foundry_staging
+      params:
+        path: app_sources_staging/
+        manifest: app_sources_staging/manifest_staging.yml
+      on_success:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
+            https://cloudfoundry-demo-staging.cf.isus.emc.com
+      on_failure:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+            http://127.0.0.1:8080/builds/$BUILD_ID
+
+  - name: test-master
+    public: true
+    serial: true
+    plan:
+      - get: app_sources_production
+        trigger: true
+      - task: unit
+        file: app_sources_production/ci/tasks/unit.yml
+
+  - name: deploy-master
+    public: true
+    serial: true
+    plan:
+    - get: app_sources_production
+      passed: [ test-master ]
+      trigger: true
+    - put: cloud_foundry_production
+      params:
+        path: app_sources_production/
+        manifest: app_sources_production/manifest.yml
+      on_success:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
+            https://cloudfoundry-demo.cf.isus.emc.com
+        put: twitter_msg
+        params:
+          status: >
+            Just deployed a new version of my app to Cloud Foundry with @concourseci (build ${BUILD_ID})
+      on_failure:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
             http://127.0.0.1:8080/builds/$BUILD_ID

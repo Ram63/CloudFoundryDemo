@@ -4,4 +4,4 @@ applications:
   memory: 128M
   instances: 3
   buildpack: staticfile_buildpack
-  host: agencyDemo
+  host: cloudfoundry-demo
