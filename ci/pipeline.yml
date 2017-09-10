@@ -35,6 +35,16 @@ resources:
     private_key: {{github_private_key}}
   check_every: 30s
 
+- name: version
+  type: semver
+  source:
+    uri: git@github.com:smichard/CloudFoundryDemo.git
+    branch: version
+    private_key: {{github_private_key}}
+    file: version
+    driver: git
+    initial_version: 0.5.0 #anpassen
+
 - name: cloud_foundry_dev
   type: cf
   source:
@@ -170,14 +180,84 @@ jobs:
             Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
             http://127.0.0.1:8080/builds/$BUILD_ID
 
+  - name: merge-release-to-master
+    public: true
+    plan:
+      - aggregate:
+        - get: app_sources_production
+        - get: app_sources_staging
+          passed: [ test-staging ]
+        - task: merge-release-to-master
+          file: app_sources_staging/ci/tasks/merge-release-branch.yml
+          params:
+            GIT_EMAIL: {{git_mail}}
+            GIT_NAME: {{git_name}}
+        - put: app_sources_production
+          params:
+            repository: out
+          on_success:
+            put: slack_msg
+            params:
+              channel: '#general'
+              text: |
+                Release branch succesfully merged to master branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully.
+          on_failure:
+            put: slack_msg
+            params:
+              channel: '#general'
+              text: |
+                Release branch failed to merged with master branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+                http://127.0.0.1:8080/builds/$BUILD_ID
+
   - name: test-master
     public: true
     serial: true
     plan:
       - get: app_sources_production
+        passed: [ merge-release-to-master ]
         trigger: true
       - task: unit
         file: app_sources_production/ci/tasks/unit.yml
+
+  - name: tag-master
+    public: true
+    plan:
+      - aggregate:
+        - get:  app_sources_production
+          passed: [ test-master ]
+          trigger: true
+        - get: app_sources_staging
+        - get: version
+      - task: bump-to-release-version
+        file: app_sources_staging/ci/tasks/bump-to-release-version.yml
+        params:
+          GIT_EMAIL: {{git_mail}}
+          GIT_NAME: {{git_name}}
+      - put: app_sources_production
+        params:
+          repository: out
+          tag: version/number
+
+  - name: bump-version
+    public: true
+    plan:
+      - aggregate:
+        - get:  app_sources_production
+          passed: [ tag-master ]
+          trigger: true
+        - get:  app_sources_staging
+        - get: version
+          params: {bump: minor}
+      - task: bump-to-next-develop-version
+        file: repo/ci/tasks/bump-to-next-develop-version.yml
+        params:
+          GIT_EMAIL: {{git_mail}}
+          GIT_NAME: {{git_name}}
+      - put: app_sources_staging
+        params:
+          repository: out
+      - put: version
+        params: {file: version/number}
 
   - name: deploy-master
     public: true
