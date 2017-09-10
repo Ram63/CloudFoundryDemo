@@ -82,14 +82,14 @@ resources:
     project_id: {{tracker-project-id}}
     tracker_url: https://www.pivotaltracker.com
 
-#- name: s3_target
-#  type: s3
-#  source:
-#    endpoint: {{s3_endpoint}}
-#    bucket: releases
-#    regexp: directory_on_s3/release-(.*).tgz tbd
-#    access_key_id: {{s3_key}}
-#    secret_access_key: {{s3_secret}}
+- name: s3_target
+  type: s3
+  source:
+    endpoint: {{s3_endpoint}}
+    bucket: releases
+    regexp: release_history/release.tgz
+    access_key_id: {{s3_key}}
+    secret_access_key: {{s3_secret}}
 
 - name: slack_msg
   type: slack_notification
@@ -237,6 +237,10 @@ jobs:
         params:
           repository: out
           tag: version/number
+      - put: s3_target
+        params:
+          file: app_sources_production
+          acl: public-read
 
   - name: bump-version
     public: true
@@ -258,6 +262,23 @@ jobs:
           repository: out
       - put: version
         params: {file: version/number}
+
+  - name: merge-release-to-develop
+    public: true
+    plan:
+      - aggregate:
+        - get: app_sources_dev
+        - get: app_sources_staging
+          passed: [ bump-version ]
+          trigger: true
+      - task: merge-release-to-develop
+        file: app_sources_staging/ci/tasks/merge-release-branch.yml
+        params:
+          GIT_EMAIL: {{git_mail}}
+          GIT_NAME: {{git_name}}
+      - put: app_sources_dev
+        params:
+          repository: out
 
   - name: deploy-master
     public: true
