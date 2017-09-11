@@ -2,8 +2,10 @@ to do:
   understand merge
   understand tag master
   understand bump
+  update links in slack messages
   test pipeline
   include S3 target
+
 
 jobs:
 
