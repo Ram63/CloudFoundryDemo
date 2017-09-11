@@ -5,3 +5,4 @@ applications:
   instances: 3
   buildpack: staticfile_buildpack
   host: cloudfoundry-demo-sym
+
