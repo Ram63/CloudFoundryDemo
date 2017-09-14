@@ -5,11 +5,13 @@ image_resource:
   source:
     repository: getourneau/alpine-bash-git
 inputs:
-  - name: app_sources_dev
-  - name: app_sources_staging
+  - name: from
+    path: repo-target
+  - name: to
+    path: repo
 outputs:
   - name: out
 run:
   path: /bin/bash
   args:
-  - app_sources_staging/ci/tasks/merge-release-branch.sh
+    - repo-target/ci/tasks/merge.sh
