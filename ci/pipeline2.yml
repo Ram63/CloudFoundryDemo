@@ -191,7 +191,7 @@ jobs:
         - get: production
           resource: app_sources_production
         - task: merge-release-to-master
-          file: app_sources_staging/ci/tasks/merge-branch.yml
+          file: staging/ci/tasks/merge-branch.yml
           input_mapping: { from: staging, to: production}
           output_mapping: { out: next-production }
           params:

@@ -1,0 +1,76 @@
+resources:
+- name: repo-master
+  type: git
+  source:
+    uri: git@github.com:smichard/CloudFoundryDemo.git
+    branch: dev
+    private_key: {{github_private_key}}
+  check_every: 20s
+
+- name: repo-production
+  type: git
+  source:
+    uri: git@github.com:smichard/CloudFoundryDemo.git
+    branch: staging
+    private_key: {{github_private_key}}
+  check_every: 30s
+
+- name: cloud_foundry_dev
+  type: cf
+  source:
+    api: {{cf_api}}
+    username: {{cf_user}}
+    password: {{cf_password}}
+    organization: {{cf_org}}
+    space: {{cf_space_dev}}
+    skip_cert_check: false
+
+jobs:
+  - name: test-master
+    public: true
+    serial: true
+    plan:
+      - get: repo-master
+        trigger: true
+      - task: unit
+        file: repo-master/ci/tasks/unit.yml
+
+  - name: deploy-master
+    public: true
+    serial: true
+    plan:
+    - get: repo-master
+      passed: [ test-master ]
+      trigger: true
+    - put: cloud_foundry_dev
+      params:
+        path: repo-master/
+        manifest: repo-master/manifest_staging.yml
+
+  - name: merge-release-to-master
+    public: true
+    serial: true
+    plan:
+      - aggregate:
+        - get: master
+          resource: repo-master
+          passed: [ deploy-master ]
+        - get: production
+          resource: repo-production
+        - task: merge-release-to-master
+          file: master/ci/tasks/merge-branch.yml
+          input_mapping: { from: master, to: production}
+          output_mapping: { out: next-production }
+          params:
+            GIT_EMAIL: {{git_mail}}
+            GIT_NAME: {{git_name}}
+
+  - name: test-production
+    public: true
+    serial: true
+    plan:
+      - get: repo-production
+        passed: [ merge-release-to-master ]
+        trigger: true
+      - task: unit
+        file: app_sources_production/ci/tasks/unit.yml
