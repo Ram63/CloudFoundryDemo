@@ -5,7 +5,8 @@ resources:
     uri: git@github.com:smichard/CloudFoundryDemo.git
     branch: dev
     private_key: {{github_private_key}}
-  check_every: 20s
+  check_every: 300s
+  webhook_token: bladibladibla
 
 - name: repo-production
   type: git
@@ -52,18 +53,21 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - get: master
-          resource: repo-master
+        - get: repo-master
           passed: [ deploy-master ]
         - get: production
           resource: repo-production
         - task: merge-release-to-master
-          file: master/ci/tasks/merge-branch.yml
+          file: repo-master/ci/tasks/merge-branch.yml
           input_mapping: { from: master, to: production}
           output_mapping: { out: next-production }
           params:
             GIT_EMAIL: {{git_mail}}
             GIT_NAME: {{git_name}}
+        - put: production
+          resource: repo-production
+          params:
+            repository: next-production
 
   - name: test-production
     public: true
