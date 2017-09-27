@@ -18,23 +18,24 @@ resources:
     branch: dev
     username: {{github_username}}
     password: {{github_password}}
-#    private_key: {{github_private_key}}
   check_every: 10s
 
 - name: app_sources_staging
   type: git
   source:
-    uri: git@github.com:smichard/CloudFoundryDemo.git
+    uri: https://github.com/smichard/CloudFoundryDemo.git
     branch: staging
-    private_key: {{github_private_key}}
+    username: {{github_username}}
+    password: {{github_password}}
   check_every: 20s
 
 - name: app_sources_production
   type: git
   source:
-    uri: git@github.com:smichard/CloudFoundryDemo.git
+    uri: https://github.com/smichard/CloudFoundryDemo.git
     branch: master
-    private_key: {{github_private_key}}
+    username: {{github_username}}
+    password: {{github_password}}
   check_every: 30s
 
 - name: version
