@@ -186,31 +186,25 @@ jobs:
   - name: merge-release-to-master
     public: true
     plan:
-      - aggregate:
-        - get: app_sources_production
-        - get: app_sources_staging
-          passed: [ test-staging ]
-        - task: merge-release-to-master
-          file: app_sources_staging/ci/tasks/merge-release-branch.yml
+      - get: app_sources_staging
+        passed: [ test-staging ]
+      - put: app_sources_production
+        params:
+            repository: app_sources_staging
+            merge: TRUE
+        on_success:
+          put: slack_msg
           params:
-            GIT_EMAIL: {{git_mail}}
-            GIT_NAME: {{git_name}}
-        - put: app_sources_production
+            channel: '#general'
+            text: |
+              Release branch succesfully merged to master branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully.
+        on_failure:
+          put: slack_msg
           params:
-            repository: out
-          on_success:
-            put: slack_msg
-            params:
-              channel: '#general'
-              text: |
-                Release branch succesfully merged to master branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully.
-          on_failure:
-            put: slack_msg
-            params:
-              channel: '#general'
-              text: |
-                Release branch failed to merged with master branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
-                http://127.0.0.1:8080/builds/$BUILD_ID
+            channel: '#general'
+            text: |
+              Release branch failed to merge with master branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+              http://127.0.0.1:8080/builds/$BUILD_ID
 
   - name: test-master
     public: true
@@ -269,19 +263,26 @@ jobs:
   - name: merge-release-to-develop
     public: true
     plan:
-      - aggregate:
-        - get: app_sources_dev
-        - get: app_sources_staging
-          passed: [ bump-version ]
-          trigger: true
-      - task: merge-release-to-develop
-        file: app_sources_staging/ci/tasks/merge-release-branch.yml
-        params:
-          GIT_EMAIL: {{git_mail}}
-          GIT_NAME: {{git_name}}
+      - get: app_sources_production
+        passed: [ bump-version ]
+        trigger: false
       - put: app_sources_dev
         params:
-          repository: out
+          repository: app_sources_production
+          merge: true
+        on_success:
+          put: slack_msg
+          params:
+            channel: '#general'
+            text: |
+              Master branch succesfully merged to dev branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully.
+        on_failure:
+          put: slack_msg
+          params:
+            channel: '#general'
+            text: |
+              Master branch failed to merge with dev branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+              http://127.0.0.1:8080/builds/$BUILD_ID
 
   - name: deploy-master
     public: true
