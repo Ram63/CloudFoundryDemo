@@ -1,0 +1,33 @@
+resources:
+- name: app_sources_dev
+  type: git
+  source:
+    uri: https://github.com/smichard/CloudFoundryDemo.git
+    branch: dev
+    username: {{github_username}}
+    password: {{github_password}}
+  check_every: 10s
+
+- name: app_sources_staging
+  type: git
+  source:
+    uri: https://github.com/smichard/CloudFoundryDemo.git
+    branch: staging
+    username: {{github_username}}
+    password: {{github_password}}
+  check_every: 20s
+
+jobs:
+  - name: merge-release-to-master
+    public: true
+    plan:
+      - get: app_sources_dev
+#        - get: app_sources_staging
+#        - task: merge-release-to-master
+#          file: app_sources_staging/ci/tasks/merge-release-branch.yml
+#          params:
+#            GIT_EMAIL: {{git_mail}}
+#            GIT_NAME: {{git_name}}
+      - put: app_sources_staging
+        params: {repository: app_sources_dev}
+#       merge: TRUE
