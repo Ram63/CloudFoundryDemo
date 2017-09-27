@@ -148,11 +148,35 @@ jobs:
             Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
             http://127.0.0.1:8080/builds/$BUILD_ID
 
+  - name: merge-dev-to-staging
+    public: true
+    plan:
+      - get: app_sources_dev
+        passed: [ deploy-dev ]
+      - put: app_sources_staging
+        params:
+            repository: app_sources_dev
+            merge: TRUE
+        on_success:
+          put: slack_msg
+          params:
+            channel: '#general'
+            text: |
+              Dev branch succesfully merged to staging branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully.
+        on_failure:
+          put: slack_msg
+          params:
+            channel: '#general'
+            text: |
+              Dev branch failed to merge with staging branch: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+              http://127.0.0.1:8080/builds/$BUILD_ID
+
   - name: test-staging
     public: true
     serial: true
     plan:
       - get: app_sources_staging
+        passed: [ merge-dev-to-staging ]
         trigger: true
       - task: unit
         file: app_sources_staging/ci/tasks/unit.yml
