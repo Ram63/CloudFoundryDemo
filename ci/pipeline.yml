@@ -140,6 +140,8 @@ jobs:
           text: |
             Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
             https://cloudfoundry-demo-sym-dev.cfapps.io/
+            Deploy dev to staging environment:
+            http://149.202.48.252:9000/hooks/trigger-merge-to-staging-pipeline?token=h32kj5hkj43hkj2h35kjh3k3hj2kjh532kjhkj4h2kjthk4308978jlkj
       on_failure:
         put: slack_msg
         params:
