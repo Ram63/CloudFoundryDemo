@@ -155,6 +155,7 @@ jobs:
     plan:
       - get: app_sources_dev
         passed: [ deploy-dev ]
+        trigger: false
       - put: app_sources_staging
         params:
             repository: app_sources_dev
@@ -214,6 +215,7 @@ jobs:
     plan:
       - get: app_sources_staging
         passed: [ test-staging ]
+        trigger: false
       - put: app_sources_production
         params:
             repository: app_sources_staging
