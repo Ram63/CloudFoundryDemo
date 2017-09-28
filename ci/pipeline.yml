@@ -215,7 +215,7 @@ jobs:
       - put: app_sources_production
         params:
             repository: app_sources_staging
-            merge: TRUE
+            merge: true
         on_success:
           put: slack_msg
           params:
@@ -289,7 +289,7 @@ jobs:
     plan:
       - get: app_sources_production
         passed: [ bump-version ]
-        trigger: false
+        trigger: true
       - put: app_sources_dev
         params:
           repository: app_sources_production
