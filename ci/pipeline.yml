@@ -134,21 +134,27 @@ jobs:
         path: app_sources_dev/
         manifest: app_sources_dev/manifest_dev.yml
       on_success:
-        put: slack_msg
-        params:
-          channel: '#general'
-          text: |
-            Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
-            https://cloudfoundry-demo-sym-dev.cfapps.io/
-            Merge dev branch to staging branch environment:
-            http://149.202.48.252:9000/hooks/trigger-merge-to-staging-pipeline?token=h32kj5hkj43hkj2h35kjh3k3hj2kjh532kjhkj4h2kjthk4308978jlkj
+        do:
+        - task: hue_green
+          file: app_sources_dev/ci/hue_green.yml
+        - put: slack_msg
+          params:
+            channel: '#general'
+            text: |
+              Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
+              https://cloudfoundry-demo-sym-dev.cfapps.io/
+              Merge dev branch to staging branch environment:
+              http://149.202.48.252:9000/hooks/trigger-merge-to-staging-pipeline?token=h32kj5hkj43hkj2h35kjh3k3hj2kjh532kjhkj4h2kjthk4308978jlkj
       on_failure:
-        put: slack_msg
-        params:
-          channel: '#general'
-          text: |
-            Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
-            http://127.0.0.1:8080/builds/$BUILD_ID
+        do:
+        - task: hue_red
+          file: app_sources_dev/ci/hue_red.yml
+        - put: slack_msg
+          params:
+            channel: '#general'
+            text: |
+              Dev: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+              http://127.0.0.1:8080/builds/$BUILD_ID
 
   - name: merge-dev-to-staging
     public: true
@@ -196,21 +202,27 @@ jobs:
         path: app_sources_staging/
         manifest: app_sources_staging/manifest_staging.yml
       on_success:
-        put: slack_msg
-        params:
-          channel: '#general'
-          text: |
-            Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
-            https://cloudfoundry-demo-sym-staging.cfapps.io/
-            Merge staging branch to master branch environment:
-            http://149.202.48.252:9000/hooks/trigger-merge-to-master-pipeline?token=h32kj5hkj43hkj2h35kjh3k3hj2kjh532kjhkj4h2kjthk4308978jlkj
+        do:
+        - task: hue_green
+          file: app_sources_staging/ci/hue_green.yml
+        - put: slack_msg
+          params:
+            channel: '#general'
+            text: |
+              Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
+              https://cloudfoundry-demo-sym-staging.cfapps.io/
+              Merge staging branch to master branch environment:
+              http://149.202.48.252:9000/hooks/trigger-merge-to-master-pipeline?token=h32kj5hkj43hkj2h35kjh3k3hj2kjh532kjhkj4h2kjthk4308978jlkj
       on_failure:
-        put: slack_msg
-        params:
-          channel: '#general'
-          text: |
-            Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
-            http://127.0.0.1:8080/builds/$BUILD_ID
+        do:
+          - task: hue_red
+            file: app_sources_staging/ci/hue_red.yml
+          - put: slack_msg
+            params:
+              channel: '#general'
+              text: |
+                Staging: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+                http://127.0.0.1:8080/builds/$BUILD_ID
 
   - name: merge-release-to-master
     public: true
@@ -302,20 +314,26 @@ jobs:
         path: app_sources_production/
         manifest: app_sources_production/manifest.yml
       on_success:
-        put: slack_msg
-        params:
-          channel: '#general'
-          text: |
-            Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
-            http://cloudfoundry-demo-sym.cfapps.io/
-        put: twitter_msg
-        params:
-          status: >
-            Just deployed a new version of my app to Cloud Foundry with @concourseci (build ${BUILD_ID}) - check it out http://cloudfoundry-demo-sym.cfapps.io/
+        do:
+          - task: hue_green
+            file: app_sources_production/ci/hue_green.yml
+          - put: slack_msg
+            params:
+              channel: '#general'
+              text: |
+                Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME completed succesfully. Check the current development state at:
+                http://cloudfoundry-demo-sym.cfapps.io/
+          - put: twitter_msg
+            params:
+              status: >
+                Just deployed a new version of my app to Cloud Foundry with @concourseci (build ${BUILD_ID}) - check it out http://cloudfoundry-demo-sym.cfapps.io/
       on_failure:
-        put: slack_msg
-        params:
-          channel: '#general'
-          text: |
-            Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
-            http://127.0.0.1:8080/builds/$BUILD_ID
+        do:
+          - task: hue_red
+            file: app_sources_production/ci/hue_red.yml
+          - put: slack_msg
+            params:
+              channel: '#general'
+              text: |
+                Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+                http://127.0.0.1:8080/builds/$BUILD_ID
