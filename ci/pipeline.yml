@@ -274,18 +274,6 @@ jobs:
         - put: version
           params: {bump: minor}
 
-  - name: bump-version-major
-    public: true
-    plan:
-      - aggregate:
-        - get:  app_sources_production
-          passed: [ test-master ]
-          trigger: false
-        - get: version
-          trigger: false
-        - put: version
-          params: {bump: major}
-
   - name: deploy-master
     public: true
     serial: true
@@ -294,9 +282,9 @@ jobs:
       passed: [ test-master ]
       trigger: true
     - put: ecs_backup
-      params:
-        file: app_sources_production/index.html
-        acl: public-read
+      params: {file: app_sources_production/index.html}
+#        file: app_sources_production/index.html
+#        acl: public-read
     - put: cloud_foundry_production
       params:
         path: app_sources_production/
