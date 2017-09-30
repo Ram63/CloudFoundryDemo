@@ -47,7 +47,7 @@ resources:
     password: {{github_password}}
     file: version
     driver: git
-    initial_version: 0.5.0 #anpassen
+    initial_version: 0.6.0 #anpassen
 
 - name: cloud_foundry_dev
   type: cf
