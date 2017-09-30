@@ -47,7 +47,7 @@ resources:
     password: {{github_password}}
     file: version
     driver: git
-    initial_version: 0.6.0 #anpassen
+    initial_version: 0.6.0
 
 - name: cloud_foundry_dev
   type: cf
@@ -86,14 +86,14 @@ resources:
     project_id: {{tracker-project-id}}
     tracker_url: https://www.pivotaltracker.com
 
-#- name: s3_target
-#  type: s3
-#  source:
-#    endpoint: {{s3_endpoint}}
-#    bucket: releases
-#    regexp: release_history/release-(.*).tgz
-#    access_key_id: {{s3_key}}
-#    secret_access_key: {{s3_secret}}
+- name: ecs_backup
+  type: s3
+  source:
+    endpoint: {{s3_endpoint}}
+    bucket: releases
+    regexp: release_history/release-(.*).tgz
+    access_key_id: {{s3_key}}
+    secret_access_key: {{s3_secret}}
 
 - name: slack_msg
   type: slack_notification
@@ -293,6 +293,10 @@ jobs:
     - get: app_sources_production
       passed: [ test-master ]
       trigger: true
+    - put: ecs_backup
+      params:
+        file: app_sources_production/index.html
+        acl: public-read
     - put: cloud_foundry_production
       params:
         path: app_sources_production/
