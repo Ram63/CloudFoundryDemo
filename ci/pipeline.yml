@@ -136,7 +136,7 @@ jobs:
       on_success:
         do:
         - task: hue_green
-          file: app_sources_dev/ci/hue_green.yml
+          file: app_sources_dev/ci/tasks/hue_green.yml
         - put: slack_msg
           params:
             channel: '#general'
@@ -148,7 +148,7 @@ jobs:
       on_failure:
         do:
         - task: hue_red
-          file: app_sources_dev/ci/hue_red.yml
+          file: app_sources_dev/ci/tasks/hue_red.yml
         - put: slack_msg
           params:
             channel: '#general'
@@ -204,7 +204,7 @@ jobs:
       on_success:
         do:
         - task: hue_green
-          file: app_sources_staging/ci/hue_green.yml
+          file: app_sources_staging/ci/tasks/hue_green.yml
         - put: slack_msg
           params:
             channel: '#general'
@@ -216,7 +216,7 @@ jobs:
       on_failure:
         do:
           - task: hue_red
-            file: app_sources_staging/ci/hue_red.yml
+            file: app_sources_staging/ci/tasks/hue_red.yml
           - put: slack_msg
             params:
               channel: '#general'
@@ -316,7 +316,7 @@ jobs:
       on_success:
         do:
           - task: hue_green
-            file: app_sources_production/ci/hue_green.yml
+            file: app_sources_production/ci/tasks/hue_green.yml
           - put: slack_msg
             params:
               channel: '#general'
@@ -330,7 +330,7 @@ jobs:
       on_failure:
         do:
           - task: hue_red
-            file: app_sources_production/ci/hue_red.yml
+            file: app_sources_production/ci/tasks/hue_red.yml
           - put: slack_msg
             params:
               channel: '#general'
