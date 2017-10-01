@@ -86,14 +86,14 @@ resources:
     project_id: {{tracker-project-id}}
     tracker_url: https://www.pivotaltracker.com
 
-- name: ecs_backup
-  type: s3
-  source:
-    endpoint: {{s3_endpoint}}
+#- name: ecs_backup
+#  type: s3
+#  source:
+#    endpoint: {{s3_endpoint}}
 #    bucket: releases
 #    regexp: release_history/release-(.*).tgz
-    access_key_id: {{s3_key}}
-    secret_access_key: {{s3_secret}}
+#    access_key_id: {{s3_key}}
+#    secret_access_key: {{s3_secret}}
 
 - name: slack_msg
   type: slack_notification
@@ -281,8 +281,8 @@ jobs:
     - get: app_sources_production
       passed: [ test-master ]
       trigger: true
-    - put: ecs_backup
-      params: {file: app_sources_production/index.html}
+#    - put: ecs_backup
+#      params: {file: app_sources_production/index.html}
 #        file: app_sources_production/index.html
 #        acl: public-read
     - put: cloud_foundry_production
