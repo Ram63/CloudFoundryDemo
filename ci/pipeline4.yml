@@ -38,7 +38,7 @@ jobs:
     - get: app_sources_production
       trigger: false
     - task: create-artifact
-      file: app_sources_production/ci/tasks/create-artifact.yml
+      file: app_sources_production/ci/tasks/create_artifact.yml
     - put: S3_target
       params: # {file: app_sources_release/CloudFoundryDemo-(.*).tar.gz}
         file: ./artifact/cloud_foundry_demo-*-*.tar.gz
@@ -48,6 +48,5 @@ jobs:
 
 # to do:
 # zunächst als eigene pipeline
-# s3 resource anpassen
-# integrieren als seperater job nach merge to master / ship to Production
 # code commiten
+# unnötige files löschen

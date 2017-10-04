@@ -17,7 +17,6 @@ run:
     # Do your build steps here. Creating temporary file below as a sample:
     export CURRENT_TIMESTAMP=$(date +"%Y%m%d%H%S")
     export CURRENT_VERSION=$(cat version/version)
-    echo "Artifact version $CURRENT_VERSION output file, timestamp: $CURRENT_TIMESTAMP" > ./artifact/meta_data.txt
     # Creating sample package file with a file name containing the new version number
     tar -zcvf cloud_foundry_demo-$CURRENT_TIMESTAMP-$CURRENT_VERSION.tar.gz app_sources_production
     cp cloud_foundry_demo-$CURRENT_TIMESTAMP-$CURRENT_VERSION.tar.gz artifact
