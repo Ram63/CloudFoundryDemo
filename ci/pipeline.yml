@@ -86,14 +86,14 @@ resources:
     project_id: {{tracker-project-id}}
     tracker_url: https://www.pivotaltracker.com
 
-#- name: ecs_backup
-#  type: s3
-#  source:
-#    endpoint: {{s3_endpoint}}
-#    bucket: releases
-#    regexp: release_history/release-(.*).tgz
-#    access_key_id: {{s3_key}}
-#    secret_access_key: {{s3_secret}}
+- name: S3_target
+  type: s3
+  source:
+    endpoint: {{s3_endpoint}}
+    bucket: releases
+    regexp: release_history/cloud_foundry_demo-(.*)-(.*).tar.gz
+    access_key_id: {{s3_key}}
+    secret_access_key: {{s3_secret}}
 
 - name: slack_msg
   type: slack_notification
@@ -262,18 +262,6 @@ jobs:
       - task: unit
         file: app_sources_production/ci/tasks/unit.yml
 
-  - name: bump-version-minor
-    public: true
-    plan:
-      - aggregate:
-        - get:  app_sources_production
-          passed: [ test-master ]
-          trigger: true
-        - get: version
-          trigger: false
-        - put: version
-          params: {bump: minor}
-
   - name: deploy-master
     public: true
     serial: true
@@ -281,10 +269,6 @@ jobs:
     - get: app_sources_production
       passed: [ test-master ]
       trigger: true
-#    - put: ecs_backup
-#      params: {file: app_sources_production/index.html}
-#        file: app_sources_production/index.html
-#        acl: public-read
     - put: cloud_foundry_production
       params:
         path: app_sources_production/
@@ -313,6 +297,48 @@ jobs:
               text: |
                 Production: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
                 http://127.0.0.1:8080/builds/$BUILD_ID
+
+  - name: ecs-backup
+    public: true
+    serial: true
+    plan:
+    - get: version
+      trigger: false
+    - get: app_sources_production
+      trigger: true
+      passed: [ deploy-master ]
+    - task: create-artifact
+      file: app_sources_production/ci/tasks/create_artifact.yml
+    - put: S3_target
+      params:
+        file: ./artifact/cloud_foundry_demo-*-*.tar.gz
+        acl: public-read
+      on_success:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            Artifact succesfully uploaded to S3 target.
+      on_failure:
+        put: slack_msg
+        params:
+          channel: '#general'
+          text: |
+            Artifact could not be uploaded to S3 target: The build $BUILD_JOB_NAME with build ID $BUILD_ID for pipeline $BUILD_PIPELINE_NAME failed. Check it out at:
+            http://127.0.0.1:8080/builds/$BUILD_ID
+
+
+  - name: bump-version-minor
+    public: true
+    plan:
+      - aggregate:
+        - get:  app_sources_production
+          passed: [ ecs-backup ]
+          trigger: true
+        - get: version
+          trigger: false
+        - put: version
+          params: {bump: minor}
 
   - name: patch
     public: true
