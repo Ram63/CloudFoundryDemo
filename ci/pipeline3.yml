@@ -1,0 +1,81 @@
+resources:
+- name: ecs_backup
+  type: s3
+  source:
+    endpoint: {{s3_endpoint}}
+    bucket: releases
+    #versioned_file: release_history/index.html
+    regexp: release_history/myapp-release-(.*)-(.*).tar.gz
+    access_key_id: {{s3_key}}
+    secret_access_key: {{s3_secret}}
+
+- name: version
+  type: semver
+  source:
+    uri: https://github.com/smichard/CloudFoundryDemo.git
+    branch: version
+    username: {{github_username}}
+    password: {{github_password}}
+    file: version
+    driver: git
+    initial_version: 0.6.0
+
+- name: app_sources_production
+  type: git
+  source:
+    uri: https://github.com/smichard/CloudFoundryDemo.git
+    branch: master
+    username: {{github_username}}
+    password: {{github_password}}
+  check_every: 30s
+
+jobs:
+  - name: ecs-backup
+    public: true
+    serial: true
+    plan:
+    - get: version
+      trigger: false
+    - get: app_sources_production
+      trigger: false
+    - task: create-artifact
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ubuntu
+        inputs:
+        - name: app_sources_production
+        - name: version
+        outputs:
+        - name: build
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            # Do your build steps here. Creating temporary file below as a sample:
+            export CURRENT_TIMESTAMP=$(date +"%Y%m%d%H%S")
+            export CURRENT_VERSION=$(cat version/version)
+            #echo "Sample build output file, timestamp: $CURRENT_TIMESTAMP" > ./build/myappfile.txt
+            # Creating sample package file with a file name containing the new version number
+            #tar -cvzf ./myapp-release-$CURRENT_TIMESTAMP-$CURRENT_VERSION.tar.gz  --directory=./build .
+            #mv ./myapp-release-*.tar.gz ./build
+            tar -zcvf myapp-release-$CURRENT_TIMESTAMP-$CURRENT_VERSION.tar.gz app_sources_production
+            cp myapp-release-$CURRENT_TIMESTAMP-$CURRENT_VERSION.tar.gz build
+            #find .
+    - put: ecs_backup
+      params: # {file: app_sources_release/CloudFoundryDemo-(.*).tar.gz}
+        file: ./build/myapp-release-*.tar.gz
+        acl: public-read
+
+
+
+# to do:
+# zunächst als eigene pipeline
+# s3 resource anpassen
+# integrieren als seperater job nach merge to master / ship to Production
+# build umbenennen und dateiname von myapp-release zu cloud_foundry_demo aendern
+# bash code als task
+# code commiten

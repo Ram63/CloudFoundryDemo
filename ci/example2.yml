@@ -1,0 +1,46 @@
+---
+
+resources:
+
+- name: shared-s3
+  type: s3
+  source:
+    access_key_id: xxxx
+    secret_access_key: xxxx
+    region_name: us-east-1
+    bucket: xxxx
+    regex: concourse_artifact.tar.gz
+
+- name: concourse-tutorial
+  type: git
+  source:
+    uri: https://github.com/starkandwayne/concourse-tutorial.git
+
+jobs:
+  - name: build-and-put-artifact
+    plan:
+    - get: concourse-tutorial
+    - get: version # added
+    - task: task
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ubuntu
+            tag: "latest"
+        inputs:
+          - name: concourse-tutorial
+          - name: version
+        outputs:
+          - name: artifacts
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            tar -zcvf concourse_artifact.tar.gz concourse-tutorial
+            cp concourse_artifact.tar.gz artifacts
+    - put: shared-s3
+      params:
+        file: artifacts/concourse_artifact.tar.gz
